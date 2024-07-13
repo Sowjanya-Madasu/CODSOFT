@@ -1,0 +1,41 @@
+import re
+
+# Define a list of rules
+rules = [
+    (re.compile(r"\b(hi|hello|hey)\b", re.IGNORECASE), "Hello! How can I help you today?"),
+    (re.compile(r"\b(what is your name|who are you)\b", re.IGNORECASE), "My name is Karthik. I am a large language model."),
+    (re.compile(r"\b(what is the time)\b", re.IGNORECASE), "The time is currently 17:14 PST on 2022-11-22."),
+    (re.compile(r"\b(how are you doing|how are you)\b", re.IGNORECASE), "I am doing well, thank you for asking!"),
+    (re.compile(r"\b(goodbye|bye)\b", re.IGNORECASE), "Goodbye! Have a nice day!"),
+    (re.compile(r"\b(good morning)\b", re.IGNORECASE), "Good morning! How can I help you today?"),
+    (re.compile(r"\b(good afternoon)\b", re.IGNORECASE), "Good afternoon! How can I help you today?"),
+    (re.compile(r"\b(good evening)\b", re.IGNORECASE), "Good evening! How can I help you today?"),
+    (re.compile(r"\b(have a good day)\b", re.IGNORECASE), "You too! Have a great day!"),
+    (re.compile(r"\b(see you later)\b", re.IGNORECASE), "See you later! Have a great day!"),
+    (re.compile(r"\b(what is the weather like today)\b", re.IGNORECASE), "The weather in Satara, India is currently 34 degrees Celsius and sunny."),
+    (re.compile(r"\b(what is the news today)\b", re.IGNORECASE), "Here is a summary of the top news stories today..."),
+    (re.compile(r"\b(what are your features)\b", re.IGNORECASE), "I can generate text, translate languages, write different kinds of creative content, and answer your questions in an informative way."),
+    (re.compile(r"\b(how much do you cost)\b", re.IGNORECASE), "I am currently free to use."),
+    (re.compile(r"\b(how do I use you)\b", re.IGNORECASE), "To use me, simply type a question or request and I will do my best to respond."),
+    (re.compile(r"\b(i would like to book an appointment with dr\. smith)\b", re.IGNORECASE), "Sure. What date and time would you like to book your appointment for?"),
+    (re.compile(r"\b(i would like to order a size 7 black shirt)\b", re.IGNORECASE), "Sure. What is your shipping address?"),
+    (re.compile(r"\b(i am having trouble with my account)\b", re.IGNORECASE), "I can help you with that. Please describe the problem in more detail.")
+]
+
+# Function to match user query to rules
+def match_rule(query):
+    for pattern, response in rules:
+        if pattern.search(query):
+            return response
+    return "I don't understand your query. Please try again."
+
+# Function to generate a response to a user query
+def generate_response(query):
+    return match_rule(query)
+
+# Start the chatbot loop
+if __name__ == "__main__":
+    while True:
+        user_query = input("User: ")
+        response = generate_response(user_query)
+        print(f"Chatbot: {response}")
