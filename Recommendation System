@@ -1,0 +1,59 @@
+import numpy as np  # linear algebra
+import pandas as pd  # data processing, CSV file I/O
+import matplotlib.pyplot as plt  # data visualization
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Load movie metadata
+movies_df = pd.read_csv('/content/movies_metadata.csv', error_bad_lines=False, engine='python')
+
+# Check for missing values and data types
+print(movies_df.info())
+print(movies_df.isnull().sum())
+
+# Convert the 'id' column to integers
+movies_df['id'] = movies_df['id'].astype(int)
+
+# Keep only the relevant columns
+movies_df = movies_df[['id', 'title', 'overview', 'tagline']]
+
+# Combine 'overview' and 'tagline' to create a 'content' feature
+movies_df['content'] = movies_df['overview'].fillna('') + ' ' + movies_df['tagline'].fillna('')
+
+# Initialize CountVectorizer with n-grams
+count_vectorizer = CountVectorizer(stop_words='english', ngram_range=(1, 2))
+
+# Fit and transform the 'content' column
+count_matrix = count_vectorizer.fit_transform(movies_df['content'])
+
+# Compute the cosine similarity matrix
+cosine_sim = cosine_similarity(count_matrix, count_matrix)
+
+def get_movie_recommendations(title, cosine_sim=cosine_sim):
+    # Get the index of the movie that matches the title
+    idx = movies_df[movies_df['title'] == title].index[0]
+    
+    # Get pairwise similarity scores of all movies with the given movie
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    
+    # Sort the movies based on the similarity scores
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    
+    # Get the indices of the top 10 most similar movies
+    movie_indices = [i[0] for i in sim_scores[1:11]]
+    
+    # Return the top 10 most similar movies
+    return movies_df['title'].iloc[movie_indices]
+
+# Test the recommendation function
+print(get_movie_recommendations('The Dark Knight'))
+
+# Plot the similarity matrix as a heatmap
+import seaborn as sns
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(cosine_sim, cmap='viridis', cbar=True)
+plt.title('Cosine Similarity Heatmap')
+plt.xlabel('Movie Index')
+plt.ylabel('Movie Index')
+plt.show()
