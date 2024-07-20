@@ -3,22 +3,30 @@ import pandas as pd  # data processing, CSV file I/O
 import matplotlib.pyplot as plt  # data visualization
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import seaborn as sns  # for heatmap visualization
 
-# Load movie metadata
-movies_df = pd.read_csv('/content/movies_metadata.csv', error_bad_lines=False, engine='python')
+# Sample movie dataset
+data = {'Title': ['Movie 1', 'Movie 2', 'Movie 3', 'Movie 4'],
+        'Genre': ['Action', 'Comedy', 'Action', 'Drama'],
+        'Description': ['Explosive action-packed movie', 'Hilarious comedy with great actors',
+                        'Action thriller with suspense', 'Emotional drama with a powerful story']}
+movies_df = pd.DataFrame(data)
 
 # Check for missing values and data types
 print(movies_df.info())
 print(movies_df.isnull().sum())
 
-# Convert the 'id' column to integers
-movies_df['id'] = movies_df['id'].astype(int)
+# Create an 'id' column for the sake of consistency with the original code
+movies_df['id'] = movies_df.index  # Create an ID column from the index
 
-# Keep only the relevant columns
-movies_df = movies_df[['id', 'title', 'overview', 'tagline']]
+# Rename the 'Title' column to 'title' and 'Description' to 'overview'
+movies_df = movies_df.rename(columns={'Title': 'title', 'Description': 'overview'})
+
+# Add a placeholder 'tagline' column
+movies_df['tagline'] = ''  # Adding an empty 'tagline' column as placeholder
 
 # Combine 'overview' and 'tagline' to create a 'content' feature
-movies_df['content'] = movies_df['overview'].fillna('') + ' ' + movies_df['tagline'].fillna('')
+movies_df['content'] = movies_df['overview'] + ' ' + movies_df['tagline']
 
 # Initialize CountVectorizer with n-grams
 count_vectorizer = CountVectorizer(stop_words='english', ngram_range=(1, 2))
@@ -31,6 +39,9 @@ cosine_sim = cosine_similarity(count_matrix, count_matrix)
 
 def get_movie_recommendations(title, cosine_sim=cosine_sim):
     # Get the index of the movie that matches the title
+    if title not in movies_df['title'].values:
+        raise ValueError("Movie not found in the dataset")
+    
     idx = movies_df[movies_df['title'] == title].index[0]
     
     # Get pairwise similarity scores of all movies with the given movie
@@ -39,20 +50,18 @@ def get_movie_recommendations(title, cosine_sim=cosine_sim):
     # Sort the movies based on the similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
     
-    # Get the indices of the top 10 most similar movies
-    movie_indices = [i[0] for i in sim_scores[1:11]]
+    # Get the indices of the top 3 most similar movies (adjusted for small dataset)
+    movie_indices = [i[0] for i in sim_scores[1:4]]  # Only 3 recommendations due to small dataset
     
-    # Return the top 10 most similar movies
+    # Return the top 3 most similar movies
     return movies_df['title'].iloc[movie_indices]
 
 # Test the recommendation function
-print(get_movie_recommendations('The Dark Knight'))
+print(get_movie_recommendations('Movie 1'))
 
 # Plot the similarity matrix as a heatmap
-import seaborn as sns
-
-plt.figure(figsize=(10, 8))
-sns.heatmap(cosine_sim, cmap='viridis', cbar=True)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cosine_sim, cmap='viridis', cbar=True, annot=True, fmt='.2f')
 plt.title('Cosine Similarity Heatmap')
 plt.xlabel('Movie Index')
 plt.ylabel('Movie Index')
